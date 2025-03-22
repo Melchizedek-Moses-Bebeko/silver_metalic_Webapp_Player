@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metallic Video Player</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #2c2c2c;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .player-container {
+            width: 100%;
+            max-width: 800px;
+            background: linear-gradient(145deg, #d0d0d0 0%, #909090 50%, #d0d0d0 100%);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            border: 1px solid #606060;
+            position: relative;
+        }
+
+        .player-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            box-shadow: inset 0 4px 8px rgba(255,255,255,0.3),
+                        inset 0 -4px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid #404040;
+            box-sizing: border-box;
+        }
+
+        .controls {
+            padding: 12px;
+            background: rgba(200, 200, 200, 0.9);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid #606060;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #505050;
+            cursor: pointer;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        #progressBar {
+            height: 100%;
+            background: linear-gradient(90deg, #a0a0a0 0%, #d0d0d0 50%, #a0a0a0 100%);
+            width: 0;
+            transition: width 0.1s linear;
+        }
+
+        .buttons-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(145deg, #e0e0e0 0%, #b0b0b0 100%);
+            border: 1px solid #808080;
+            color: #404040;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #f0f0f0 0%, #c0c0c0 100%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            background: linear-gradient(145deg, #b0b0b0 0%, #d0d0d0 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #volumeSlider {
+            width: 80px;
+            height: 4px;
+            background: #505050;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+
+        #volumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #d0d0d0;
+            border-radius: 50%;
+            border: 1px solid #606060;
+            cursor: pointer;
+        }
+
+        .time-container {
+            color: #303030;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        #fullscreenBtn {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Keep the same HTML structure as before -->
+    <div class="player-container">
+        <video id="videoElement">
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        </video>
+        
+        <div class="controls">
+            <div class="progress-container" id="progressContainer">
+                <div id="progressBar"></div>
+            </div>
+            
+            <div class="buttons-container">
+                <button id="playPauseBtn">▶</button>
+                <div class="volume-container">
+                    <button id="muteBtn">🔊</button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                </div>
+                <div class="time-container">
+                    <span id="currentTime">0:00</span> / 
+                    <span id="duration">0:00</span>
+                </div>
+                <button id="fullscreenBtn">⛶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keep the same JavaScript as before -->
+   <script>
+        const video = document.getElementById('videoElement');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeElement = document.getElementById('currentTime');
+        const durationElement = document.getElementById('duration');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        video.addEventListener('click', togglePlayPause);
+
+        function togglePlayPause() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '⏸';
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '▶';
+            }
+        }
+
+        // Volume
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value;
+            muteBtn.innerHTML = video.volume === 0 ? '🔇' : '🔊';
+        });
+
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteBtn.innerHTML = video.muted ? '🔇' : '🔊';
+        });
+
+        // Progress
+        video.addEventListener('timeupdate', updateProgress);
+        
+        function updateProgress() {
+            const progress = (video.currentTime / video.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            currentTimeElement.textContent = formatTime(video.currentTime);
+        }
+
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
+
+        // Time format
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                video.parentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Initialize duration
+        video.addEventListener('loadedmetadata', () => {
+            durationElement.textContent = formatTime(video.duration);
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') togglePlayPause();
+            if (e.code === 'ArrowLeft') video.currentTime -= 5;
+            if (e.code === 'ArrowRight') video.currentTime += 5;
+        });
+    </script>
+</body>
+</html>
